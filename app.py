@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, HttpUrl
 from starlette.background import BackgroundTask
 
-app = FastAPI(title="Media-taker API", version="1.3.0")
+app = FastAPI(title="Media-taker API", version="1.3.1")
 
 allowed_hosts = {
     "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
@@ -76,9 +76,6 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
         "socket_timeout": 30,
     }
 
-    # Do not require separate video + audio streams. Instagram commonly exposes
-    # only one combined format, and requiring a video-only stream causes
-    # "Requested format is not available" even for public posts.
     if media_type == "mp3":
         ydl_opts = {
             **common,
@@ -90,14 +87,16 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
             }],
         }
     else:
+        # Prefer a combined stream that already contains audio. Instagram
+        # frequently exposes a single MP4 stream and may not expose separate
+        # video/audio formats. The previous bestvideo*+bestaudio selector could
+        # leave a video-only file, which was correctly rejected below.
         ydl_opts = {
             **common,
-            "format": "bestvideo*+bestaudio/best",
+            "format": "best[ext=mp4][acodec!=none]/best[acodec!=none]/best",
             "merge_output_format": "mp4",
         }
 
-    # These clients reduce false bot detections on public YouTube URLs. They do
-    # not bypass private videos, age restrictions, or videos requiring login.
     parsed_host = (urlparse(url).hostname or "").lower()
     if "youtube" in parsed_host or parsed_host == "youtu.be":
         ydl_opts["extractor_args"] = {
@@ -134,7 +133,7 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
     if result.stat().st_size <= 0:
         raise RuntimeError("The downloader produced an empty file.")
     if media_type == "mp4" and not _has_audio_stream(result):
-        raise RuntimeError("No audio stream was available, so a silent MP4 was not returned.")
+        raise RuntimeError("The selected media stream contains no audio track. Try MP3 or another public URL.")
     return result
 
 
