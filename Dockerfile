@@ -5,10 +5,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY backend/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-COPY backend ./backend
 
+COPY Requirements.txt ./Requirements.txt
+RUN pip install --no-cache-dir -r Requirements.txt
+
+COPY app.py ./app.py
+
+# Set this to your deployed frontend URL(s), comma-separated, in production.
 ENV FRONTEND_ORIGINS="*"
+
 EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

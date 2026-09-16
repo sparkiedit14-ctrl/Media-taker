@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -15,7 +16,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, HttpUrl
 from starlette.background import BackgroundTask
 
-app = FastAPI(title="Media-taker API", version="1.0.0")
+app = FastAPI(title="Media-taker API", version="1.1.0")
 
 allowed_hosts = {
     "youtube.com",
@@ -29,9 +30,7 @@ allowed_hosts = {
 }
 
 origins_raw = os.getenv("FRONTEND_ORIGINS", "*")
-origins = [item.strip() for item in origins_raw.split(",") if item.strip()]
-if not origins:
-    origins = ["*"]
+origins = [item.strip() for item in origins_raw.split(",") if item.strip()] or ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,37 +40,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class DownloadRequest(BaseModel):
     url: HttpUrl
     type: Literal["mp4", "mp3"] = "mp4"
 
+
 def _host_is_allowed(url: str) -> bool:
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower().rstrip(".")
-    if not parsed.scheme or parsed.scheme.lower() != "https":
+    if parsed.scheme.lower() != "https":
         return False
-    if host in allowed_hosts:
-        return True
-    return any(host.endswith(f".{allowed_host}") for allowed_host in allowed_hosts)
+    return host in allowed_hosts or any(host.endswith(f".{allowed}") for allowed in allowed_hosts)
+
 
 def _cleanup_directory(path: Path) -> None:
-    try:
-        shutil.rmtree(path, ignore_errors=True)
-    except Exception:
-        pass
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def _has_audio_stream(path: Path) -> bool:
+    """Return true only when ffprobe finds an actual audio stream."""
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "a:0",
+            "-show_entries",
+            "stream=codec_type",
+            "-of",
+            "csv=p=0",
+            str(path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0 and "audio" in result.stdout.lower()
+
 
 def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
-    if shutil.which("ffmpeg") is None:
-        raise RuntimeError("ffmpeg is not installed on the server.")
+    if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
+        raise RuntimeError("FFmpeg and FFprobe must be installed on the server.")
+
+    common = {
+        "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "restrictfilenames": True,
+        "retries": 3,
+        "fragment_retries": 3,
+    }
 
     if media_type == "mp3":
         ydl_opts = {
+            **common,
             "format": "bestaudio/best",
-            "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
-            "quiet": True,
-            "no_warnings": True,
-            "noplaylist": True,
-            "restrictfilenames": False,
             "prefer_ffmpeg": True,
             "postprocessors": [
                 {
@@ -82,34 +108,44 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
             ],
         }
     else:
+        # Prefer separate best video + best audio streams, then merge them into MP4.
+        # The result is checked below so a silent MP4 is never returned.
         ydl_opts = {
-            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-            "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
+            **common,
+            "format": "bestvideo+bestaudio/best[acodec!=none]",
             "merge_output_format": "mp4",
-            "quiet": True,
-            "no_warnings": True,
-            "noplaylist": True,
-            "restrictfilenames": False,
             "prefer_ffmpeg": True,
         }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.extract_info(url, download=True)
+            ydl.download([url])
     except Exception as exc:
         raise RuntimeError(
             "The media could not be downloaded. It may be private, unavailable, restricted, or unsupported."
         ) from exc
 
-    pattern = "*.mp3" if media_type == "mp3" else "*.mp4"
-    matches = sorted(output_dir.glob(pattern), key=lambda p: p.stat().st_size, reverse=True)
+    extension = ".mp3" if media_type == "mp3" else ".mp4"
+    matches = sorted(
+        (path for path in output_dir.glob(f"*{extension}") if path.is_file()),
+        key=lambda path: path.stat().st_size,
+        reverse=True,
+    )
     if not matches:
         raise RuntimeError("The downloader produced no valid output file.")
-    return matches[0]
+
+    result = matches[0]
+    if media_type == "mp4" and not _has_audio_stream(result):
+        raise RuntimeError("No audio stream was available, so a silent MP4 was not returned.")
+    if media_type == "mp3" and result.stat().st_size == 0:
+        raise RuntimeError("The downloader produced an empty MP3 file.")
+    return result
+
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "ffmpeg": "ok" if shutil.which("ffmpeg") else "missing"}
+
 
 @app.post("/api/download")
 async def download_media(request: DownloadRequest):
@@ -120,10 +156,10 @@ async def download_media(request: DownloadRequest):
     output_dir = Path(tempfile.mkdtemp(prefix="media-taker-"))
     try:
         file_path = await asyncio.to_thread(_download_media, url, request.type, output_dir)
-        media_type = "audio/mpeg" if request.type == "mp3" else "video/mp4"
+        content_type = "audio/mpeg" if request.type == "mp3" else "video/mp4"
         return FileResponse(
             path=file_path,
-            media_type=media_type,
+            media_type=content_type,
             filename=file_path.name,
             background=BackgroundTask(_cleanup_directory, output_dir),
         )
@@ -133,6 +169,7 @@ async def download_media(request: DownloadRequest):
     except Exception as exc:
         _cleanup_directory(output_dir)
         raise HTTPException(status_code=500, detail="Unexpected download failure.") from exc
+
 
 @app.get("/")
 def root() -> dict[str, str]:
