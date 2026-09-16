@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, HttpUrl
 from starlette.background import BackgroundTask
 
-app = FastAPI(title="Media-taker API", version="1.3.1")
+app = FastAPI(title="Media-taker API", version="1.4.0")
 
 allowed_hosts = {
     "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
@@ -52,6 +52,18 @@ def _cleanup_directory(path: Path) -> None:
     shutil.rmtree(path, ignore_errors=True)
 
 
+def _run_ffmpeg(args: list[str], error_message: str) -> None:
+    result = subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", *args],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip().splitlines()[-1] if result.stderr.strip() else "unknown FFmpeg error"
+        raise RuntimeError(f"{error_message} ({detail})")
+
+
 def _has_audio_stream(path: Path) -> bool:
     result = subprocess.run(
         ["ffprobe", "-v", "error", "-select_streams", "a:0",
@@ -61,14 +73,24 @@ def _has_audio_stream(path: Path) -> bool:
     return result.returncode == 0 and "audio" in result.stdout.lower()
 
 
+def _source_file(output_dir: Path) -> Path:
+    candidates = sorted(
+        (path for path in output_dir.glob("source.*") if path.is_file()),
+        key=lambda path: path.stat().st_size,
+        reverse=True,
+    )
+    if not candidates or candidates[0].stat().st_size <= 0:
+        raise RuntimeError("The downloader produced no valid media file.")
+    return candidates[0]
+
+
 def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         raise RuntimeError("FFmpeg and FFprobe must be installed on the server.")
 
     common = {
-        "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
-        "quiet": True,
-        "no_warnings": True,
+        "outtmpl": str(output_dir / "source.%(ext)s"),
+        "quiet": False,
         "noplaylist": True,
         "restrictfilenames": True,
         "retries": 3,
@@ -77,24 +99,15 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
     }
 
     if media_type == "mp3":
-        ydl_opts = {
-            **common,
-            "format": "bestaudio/best",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "0",
-            }],
-        }
+        # Download a source containing audio, then run FFmpeg ourselves. This
+        # avoids yt-dlp's FFprobe codec warning on some Instagram files.
+        ydl_opts = {**common, "format": "best[acodec!=none]/best"}
     else:
-        # Prefer a combined stream that already contains audio. Instagram
-        # frequently exposes a single MP4 stream and may not expose separate
-        # video/audio formats. The previous bestvideo*+bestaudio selector could
-        # leave a video-only file, which was correctly rejected below.
+        # Prefer a combined stream. Instagram often does not expose separate
+        # video/audio streams, while YouTube may expose either type.
         ydl_opts = {
             **common,
             "format": "best[ext=mp4][acodec!=none]/best[acodec!=none]/best",
-            "merge_output_format": "mp4",
         }
 
     parsed_host = (urlparse(url).hostname or "").lower()
@@ -120,21 +133,31 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
             "The media could not be downloaded. It may be private, unavailable, restricted, or unsupported."
         ) from exc
 
-    extension = ".mp3" if media_type == "mp3" else ".mp4"
-    matches = sorted(
-        (path for path in output_dir.glob(f"*{extension}") if path.is_file()),
-        key=lambda path: path.stat().st_size,
-        reverse=True,
-    )
-    if not matches:
-        raise RuntimeError("The downloader produced no valid output file.")
+    source = _source_file(output_dir)
+    output = output_dir / ("audio.mp3" if media_type == "mp3" else "media.mp4")
 
-    result = matches[0]
-    if result.stat().st_size <= 0:
-        raise RuntimeError("The downloader produced an empty file.")
-    if media_type == "mp4" and not _has_audio_stream(result):
-        raise RuntimeError("The selected media stream contains no audio track. Try MP3 or another public URL.")
-    return result
+    if not _has_audio_stream(source):
+        raise RuntimeError("The selected media has no audio track, so it cannot be exported with sound.")
+
+    if media_type == "mp3":
+        _run_ffmpeg(
+            ["-i", str(source), "-vn", "-map", "0:a:0", "-c:a", "libmp3lame", "-q:a", "2", str(output)],
+            "FFmpeg could not extract the audio",
+        )
+    else:
+        # Re-encode to a broadly compatible MP4 so Instagram WebM/odd codecs
+        # are handled and the final file always contains both video and audio.
+        _run_ffmpeg(
+            ["-i", str(source), "-map", "0:v:0", "-map", "0:a:0", "-c:v", "libx264",
+             "-preset", "veryfast", "-c:a", "aac", "-movflags", "+faststart", str(output)],
+            "FFmpeg could not create an MP4 with audio",
+        )
+
+    if not output.exists() or output.stat().st_size <= 0:
+        raise RuntimeError("The converted output file is empty.")
+    if media_type == "mp4" and not _has_audio_stream(output):
+        raise RuntimeError("The converted MP4 has no audio track.")
+    return output
 
 
 async def _download_response(request: DownloadRequest):
