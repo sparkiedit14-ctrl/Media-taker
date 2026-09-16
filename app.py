@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, HttpUrl
 from starlette.background import BackgroundTask
 
-app = FastAPI(title="Media-taker API", version="1.2.0")
+app = FastAPI(title="Media-taker API", version="1.3.0")
 
 allowed_hosts = {
     "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
@@ -73,7 +73,12 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
         "restrictfilenames": True,
         "retries": 3,
         "fragment_retries": 3,
+        "socket_timeout": 30,
     }
+
+    # Do not require separate video + audio streams. Instagram commonly exposes
+    # only one combined format, and requiring a video-only stream causes
+    # "Requested format is not available" even for public posts.
     if media_type == "mp3":
         ydl_opts = {
             **common,
@@ -87,14 +92,31 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
     else:
         ydl_opts = {
             **common,
-            "format": "bestvideo+bestaudio/best[acodec!=none]",
+            "format": "bestvideo*+bestaudio/best",
             "merge_output_format": "mp4",
+        }
+
+    # These clients reduce false bot detections on public YouTube URLs. They do
+    # not bypass private videos, age restrictions, or videos requiring login.
+    parsed_host = (urlparse(url).hostname or "").lower()
+    if "youtube" in parsed_host or parsed_host == "youtu.be":
+        ydl_opts["extractor_args"] = {
+            "youtube": {"player_client": ["android_vr", "web_safari"]}
         }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
     except Exception as exc:
+        message = str(exc)
+        if "Sign in to confirm" in message or "not a bot" in message:
+            raise RuntimeError(
+                "YouTube blocked this server as automated traffic. Try again later or configure an authenticated cookie on the server."
+            ) from exc
+        if "Requested format is not available" in message:
+            raise RuntimeError(
+                "This public post does not expose a compatible downloadable format to the server. Try another public URL."
+            ) from exc
         raise RuntimeError(
             "The media could not be downloaded. It may be private, unavailable, restricted, or unsupported."
         ) from exc
@@ -159,7 +181,6 @@ async def download_media(request: DownloadRequest):
 
 @app.post("/api/convert/mp3")
 async def legacy_mp3_download(request: DownloadRequest):
-    """Compatibility endpoint for the current frontend's MP3 request."""
     request.type = "mp3"
     return await _download_response(request)
 
@@ -172,5 +193,3 @@ def root():
     return JSONResponse({
         "message": "Media-taker backend is running. Use POST /api/download with a YouTube or Instagram URL."
     })
-
-""
