@@ -165,5 +165,12 @@ async def legacy_mp3_download(request: DownloadRequest):
 
 
 @app.get("/")
-def root() -> dict[str, str]:
-    return {"message": "Media-taker backend is running. Use POST /api/download with a YouTube or Instagram URL."}
+def root():
+    index_path = Path(__file__).with_name("Index.html")
+    if index_path.exists():
+        return FileResponse(index_path, media_type="text/html")
+    return JSONResponse({
+        "message": "Media-taker backend is running. Use POST /api/download with a YouTube or Instagram URL."
+    })
+
+""

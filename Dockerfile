@@ -10,6 +10,7 @@ COPY Requirements.txt ./Requirements.txt
 RUN pip install --no-cache-dir -r Requirements.txt
 
 COPY app.py ./app.py
+COPY Index.html ./Index.html
 
 # Set this to your deployed frontend URL(s), comma-separated, in production.
 ENV FRONTEND_ORIGINS="*"
