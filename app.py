@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, HttpUrl
 from starlette.background import BackgroundTask
 
-app = FastAPI(title="Media-taker API", version="1.4.0")
+app = FastAPI(title="Media-taker API", version="1.4.1")
 
 allowed_hosts = {
     "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
@@ -64,6 +64,21 @@ def _run_ffmpeg(args: list[str], error_message: str) -> None:
         raise RuntimeError(f"{error_message} ({detail})")
 
 
+def _try_fast_mp4(source: Path, output: Path) -> bool:
+    """Remux without re-encoding when the source codecs are MP4-compatible."""
+    result = subprocess.run(
+        [
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-i", str(source), "-map", "0:v:0", "-map", "0:a:0",
+            "-c", "copy", "-movflags", "+faststart", str(output),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0 and output.exists() and output.stat().st_size > 0
+
+
 def _has_audio_stream(path: Path) -> bool:
     result = subprocess.run(
         ["ffprobe", "-v", "error", "-select_streams", "a:0",
@@ -90,7 +105,8 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
 
     common = {
         "outtmpl": str(output_dir / "source.%(ext)s"),
-        "quiet": False,
+        "quiet": True,
+        "no_warnings": True,
         "noplaylist": True,
         "restrictfilenames": True,
         "retries": 3,
@@ -99,12 +115,8 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
     }
 
     if media_type == "mp3":
-        # Download a source containing audio, then run FFmpeg ourselves. This
-        # avoids yt-dlp's FFprobe codec warning on some Instagram files.
-        ydl_opts = {**common, "format": "best[acodec!=none]/best"}
+        ydl_opts = {**common, "format": "bestaudio/best"}
     else:
-        # Prefer a combined stream. Instagram often does not expose separate
-        # video/audio streams, while YouTube may expose either type.
         ydl_opts = {
             **common,
             "format": "best[ext=mp4][acodec!=none]/best[acodec!=none]/best",
@@ -145,13 +157,15 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
             "FFmpeg could not extract the audio",
         )
     else:
-        # Re-encode to a broadly compatible MP4 so Instagram WebM/odd codecs
-        # are handled and the final file always contains both video and audio.
-        _run_ffmpeg(
-            ["-i", str(source), "-map", "0:v:0", "-map", "0:a:0", "-c:v", "libx264",
-             "-preset", "veryfast", "-c:a", "aac", "-movflags", "+faststart", str(output)],
-            "FFmpeg could not create an MP4 with audio",
-        )
+        # Fast path: remux compatible files without re-encoding. This is much
+        # faster and preserves the quality of most Instagram MP4 downloads.
+        # Only unusual codecs fall back to the slower H.264/AAC conversion.
+        if not _try_fast_mp4(source, output):
+            _run_ffmpeg(
+                ["-i", str(source), "-map", "0:v:0", "-map", "0:a:0", "-c:v", "libx264",
+                 "-preset", "veryfast", "-c:a", "aac", "-movflags", "+faststart", str(output)],
+                "FFmpeg could not create an MP4 with audio",
+            )
 
     if not output.exists() or output.stat().st_size <= 0:
         raise RuntimeError("The converted output file is empty.")
@@ -193,6 +207,7 @@ def health() -> dict[str, str]:
         "status": "ok",
         "ffmpeg": "ok" if shutil.which("ffmpeg") else "missing",
         "ffprobe": "ok" if shutil.which("ffprobe") else "missing",
+        "version": app.version,
     }
 
 
