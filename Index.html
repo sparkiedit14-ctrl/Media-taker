@@ -1,0 +1,5770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<title>Video Extractor</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+
+<style>
+
+/* =========================
+   ROOT
+========================= */
+
+:root {
+
+  --accent: #8b5cf6;
+  --accent2: #4f46e5;
+  --accent-rgb: 139, 92, 246;
+
+  --bg: #030304;
+
+  --text: #f8f8ff;
+
+  --muted: #aaaabc;
+
+  --glass:
+  rgba(255,255,255,0.06);
+
+  --border:
+  rgba(255,255,255,0.12);
+
+}
+
+
+/* =========================
+   RESET
+========================= */
+
+* {
+
+  margin: 0;
+
+  padding: 0;
+
+  box-sizing: border-box;
+
+  font-family:
+  Arial,
+  sans-serif;
+
+}
+
+
+html {
+
+  scroll-behavior: smooth;
+
+}
+
+
+body {
+
+  min-height: 100vh;
+
+  color:
+  var(--text);
+
+  background:
+
+  radial-gradient(
+    circle at 50% 35%,
+    rgba(85, 40, 150, .18),
+    transparent 32%
+  ),
+
+  radial-gradient(
+    circle at 20% 80%,
+    rgba(35, 70, 160, .12),
+    transparent 30%
+  ),
+
+  linear-gradient(
+    180deg,
+    #030303,
+    #08080b 55%,
+    #030303
+  );
+
+  transition:
+
+  background .6s ease,
+
+  color .4s ease;
+
+  overflow-x: hidden;
+
+}
+
+
+body.spider-theme,
+body.galaxy-theme,
+body.ocean-theme,
+body.dark-theme,
+body.cyber-theme {
+
+  background:
+
+  radial-gradient(
+    circle at top left,
+    rgba(var(--accent-rgb), .18),
+    transparent 35%
+  ),
+
+  var(--bg);
+
+}
+
+
+/* =========================
+   AMBIENT STARS + GLOW (DEFAULT)
+========================= */
+
+.ambient-stars {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -9;
+
+  pointer-events: none;
+
+  opacity: .5;
+
+  transition: opacity .6s ease;
+
+  background-image:
+
+  radial-gradient(
+    circle,
+    rgba(255,255,255,.8) 1px,
+    transparent 1px
+  ),
+
+  radial-gradient(
+    circle,
+    rgba(150,120,255,.45) 1px,
+    transparent 1px
+  );
+
+  background-size: 110px 110px, 170px 170px;
+
+  background-position: 20px 30px, 80px 90px;
+
+  animation:
+  ambientStarMove
+  30s
+  linear
+  infinite;
+
+}
+
+@keyframes ambientStarMove {
+
+  from {
+
+    background-position:
+    20px 30px,
+    80px 90px;
+
+  }
+
+  to {
+
+    background-position:
+    130px 150px,
+    250px 270px;
+
+  }
+
+}
+
+.ambient-glow {
+
+  position: fixed;
+
+  width: 700px;
+
+  height: 700px;
+
+  left: 50%;
+
+  top: 45%;
+
+  transform: translate(-50%, -50%);
+
+  z-index: -9;
+
+  pointer-events: none;
+
+  background:
+
+  radial-gradient(
+    circle,
+    rgba(117, 55, 220, .13),
+    rgba(30, 30, 100, .05),
+    transparent 68%
+  );
+
+  filter: blur(20px);
+
+  animation:
+  ambientBreathe
+  6s
+  ease-in-out
+  infinite;
+
+  opacity: 1;
+
+  transition: opacity .6s ease;
+
+}
+
+@keyframes ambientBreathe {
+
+  0%,
+  100% {
+
+    transform:
+    translate(-50%, -50%)
+    scale(1);
+
+    opacity: .8;
+
+  }
+
+  50% {
+
+    transform:
+    translate(-50%, -50%)
+    scale(1.12);
+
+    opacity: 1;
+
+  }
+
+}
+
+body.spider-theme .ambient-stars,
+body.galaxy-theme .ambient-stars,
+body.ocean-theme .ambient-stars,
+body.dark-theme .ambient-stars,
+body.cyber-theme .ambient-stars,
+body.spider-theme .ambient-glow,
+body.galaxy-theme .ambient-glow,
+body.ocean-theme .ambient-glow,
+body.dark-theme .ambient-glow,
+body.cyber-theme .ambient-glow {
+
+  opacity: 0;
+
+}
+
+
+/* =========================
+   SILK STREAKS (DEFAULT)
+========================= */
+
+.silk-streaks {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -9;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  display: none;
+
+}
+
+@keyframes streaksDrift {
+
+  0%,
+  100% {
+
+    background-position:
+    0% 0%,
+    100% 0%,
+    0% 100%;
+
+  }
+
+  50% {
+
+    background-position:
+    30% 40%,
+    70% 30%,
+    30% 60%;
+
+  }
+
+}
+
+body.spider-theme .silk-streaks,
+body.galaxy-theme .silk-streaks,
+body.ocean-theme .silk-streaks,
+body.dark-theme .silk-streaks,
+body.cyber-theme .silk-streaks {
+
+  opacity: 0;
+
+}
+
+
+/* =========================
+   AMBIENT PARTICLES (DEFAULT)
+========================= */
+
+.particles {
+
+  position: fixed;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  z-index: -9;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .6s ease;
+
+}
+
+body.spider-theme .particles {
+
+  opacity: 1;
+
+}
+
+.particle {
+
+  position: absolute;
+
+  bottom: -20px;
+
+  width: 3px;
+
+  height: 3px;
+
+  border-radius: 50%;
+
+  background:
+  rgba(255,255,255,.35);
+
+  box-shadow:
+  0 0 6px rgba(255,255,255,.25);
+
+  animation:
+  particleRise
+  linear
+  infinite;
+
+}
+
+@keyframes particleRise {
+
+  0% {
+
+    transform: translate(0, 0);
+
+    opacity: 0;
+
+  }
+
+  10% {
+
+    opacity: .6;
+
+  }
+
+  90% {
+
+    opacity: .3;
+
+  }
+
+  100% {
+
+    transform: translate(80px, -110vh);
+
+    opacity: 0;
+
+  }
+
+}
+
+.particle.p1 { left: 6%;  width: 2px; height: 2px; animation-duration: 22s; animation-delay: 0s; }
+.particle.p2 { left: 16%; width: 3px; height: 3px; animation-duration: 26s; animation-delay: 3s; }
+.particle.p3 { left: 28%; width: 2px; height: 2px; animation-duration: 19s; animation-delay: 6s; }
+.particle.p4 { left: 39%; width: 4px; height: 4px; animation-duration: 30s; animation-delay: 1s; }
+.particle.p5 { left: 50%; width: 2px; height: 2px; animation-duration: 24s; animation-delay: 8s; }
+.particle.p6 { left: 61%; width: 3px; height: 3px; animation-duration: 21s; animation-delay: 4s; }
+.particle.p7 { left: 72%; width: 2px; height: 2px; animation-duration: 28s; animation-delay: 10s; }
+.particle.p8 { left: 83%; width: 3px; height: 3px; animation-duration: 23s; animation-delay: 2s; }
+.particle.p9 { left: 92%; width: 2px; height: 2px; animation-duration: 27s; animation-delay: 7s; }
+.particle.p10 { left: 47%; width: 2px; height: 2px; animation-duration: 20s; animation-delay: 12s; }
+
+
+/* =========================
+   BACKGROUND
+========================= */
+
+.background {
+
+  position: fixed;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  z-index: -10;
+
+  pointer-events: none;
+
+}
+
+
+.blob {
+
+  position: absolute;
+
+  width: 450px;
+
+  height: 450px;
+
+  border-radius: 50%;
+
+  background:
+  var(--accent);
+
+  filter:
+  blur(140px);
+
+  opacity: 0;
+
+  animation:
+  blobMove
+  14s
+  ease-in-out
+  infinite;
+
+  transition:
+  opacity .6s ease;
+
+}
+
+
+body.spider-theme .blob,
+body.galaxy-theme .blob,
+body.ocean-theme .blob,
+body.dark-theme .blob,
+body.cyber-theme .blob {
+
+  opacity: .18;
+
+}
+
+
+.blob1 {
+
+  top: -180px;
+
+  left: -180px;
+
+}
+
+
+.blob2 {
+
+  right: -180px;
+
+  bottom: -180px;
+
+  background:
+  var(--accent2);
+
+  animation-delay:
+  -6s;
+
+}
+
+
+@keyframes blobMove {
+
+  0%,
+  100% {
+
+    transform:
+    translate(0,0);
+
+  }
+
+
+  50% {
+
+    transform:
+    translate(
+      100px,
+      70px
+    );
+
+  }
+
+}
+
+
+/* =========================
+   GALAXY BACKGROUND
+========================= */
+
+.galaxy-stars {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: -8;
+
+  opacity: 0;
+
+  transition:
+  opacity .6s ease;
+
+  background-image:
+
+  radial-gradient(
+    circle,
+    white 1px,
+    transparent 1.5px
+  ),
+
+  radial-gradient(
+    circle,
+    rgba(180,200,255,.8) 1px,
+    transparent 1.5px
+  ),
+
+  radial-gradient(
+    circle,
+    rgba(255,255,255,.6) 1px,
+    transparent 1.5px
+  );
+
+  background-size:
+
+  90px 90px,
+
+  140px 140px,
+
+  200px 200px;
+
+  animation:
+  starsMove
+  20s
+  linear
+  infinite;
+
+}
+
+
+body.galaxy-theme
+.galaxy-stars {
+
+  opacity: 1;
+
+}
+
+
+@keyframes starsMove {
+
+  from {
+
+    background-position:
+
+    0 0,
+
+    20px 40px,
+
+    50px 80px;
+
+  }
+
+
+  to {
+
+    background-position:
+
+    90px 120px,
+
+    160px 180px,
+
+    250px 220px;
+
+  }
+
+}
+
+
+/* =========================
+   SPARKLES
+========================= */
+
+.sparkles {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: -7;
+
+  opacity: 0;
+
+  transition:
+  opacity .6s ease;
+
+}
+
+
+body.galaxy-theme
+.sparkles {
+
+  opacity: 1;
+
+}
+
+
+.sparkle {
+
+  position: absolute;
+
+  width: 4px;
+
+  height: 4px;
+
+  background: white;
+
+  border-radius: 50%;
+
+  box-shadow:
+
+  0 0 8px white,
+
+  0 0 18px
+  rgba(150,180,255,.8);
+
+  animation:
+
+  sparkle
+  3s
+  ease-in-out
+  infinite;
+
+}
+
+
+.sparkle:nth-child(1) {
+
+  top: 15%;
+
+  left: 12%;
+
+}
+
+
+.sparkle:nth-child(2) {
+
+  top: 30%;
+
+  left: 80%;
+
+  animation-delay: 1s;
+
+}
+
+
+.sparkle:nth-child(3) {
+
+  top: 70%;
+
+  left: 18%;
+
+  animation-delay: 2s;
+
+}
+
+
+.sparkle:nth-child(4) {
+
+  top: 55%;
+
+  left: 90%;
+
+  animation-delay: .5s;
+
+}
+
+
+.sparkle:nth-child(5) {
+
+  top: 80%;
+
+  left: 60%;
+
+  animation-delay: 1.5s;
+
+}
+
+
+.sparkle:nth-child(6) {
+
+  top: 10%;
+
+  left: 50%;
+
+  animation-delay: 2.5s;
+
+}
+
+
+@keyframes sparkle {
+
+  0%,
+  100% {
+
+    transform:
+    scale(.5);
+
+    opacity: .3;
+
+  }
+
+
+  50% {
+
+    transform:
+    scale(2);
+
+    opacity: 1;
+
+  }
+
+}
+
+
+/* =========================
+   SATURN
+========================= */
+
+.saturn {
+
+  position: fixed;
+
+  right: -80px;
+
+  bottom: -65px;
+
+  width: 290px;
+
+  height: 290px;
+
+  pointer-events: none;
+
+  z-index: -5;
+
+  opacity: 0;
+
+  transform:
+  translateY(40px);
+
+  transition:
+
+  opacity .8s ease,
+
+  transform .8s ease;
+
+}
+
+
+body.galaxy-theme
+.saturn {
+
+  opacity: .95;
+
+  transform:
+  translateY(0);
+
+}
+
+
+/* RING BACK */
+
+.saturn-ring-back {
+
+  position: absolute;
+
+  width: 290px;
+
+  height: 95px;
+
+  left: 0;
+
+  top: 95px;
+
+  border-radius: 50%;
+
+  border:
+
+  17px solid
+  rgba(205,180,135,.7);
+
+  transform:
+  rotate(-18deg);
+
+  animation:
+  ringMove
+  7s
+  ease-in-out
+  infinite;
+
+}
+
+
+/* PLANET */
+
+.saturn-planet {
+
+  position: absolute;
+
+  width: 185px;
+
+  height: 185px;
+
+  left: 52px;
+
+  top: 52px;
+
+  border-radius: 50%;
+
+  background:
+
+  radial-gradient(
+    circle at 35% 30%,
+
+    #f4d7a1 0%,
+
+    #d4a365 30%,
+
+    #9b6739 60%,
+
+    #3d2414 100%
+  );
+
+  box-shadow:
+
+  inset
+  -25px
+  -20px
+  35px
+  rgba(0,0,0,.45),
+
+  0
+  0
+  60px
+  rgba(195,140,80,.2);
+
+}
+
+
+/* RING FRONT */
+
+.saturn-ring-front {
+
+  position: absolute;
+
+  width: 290px;
+
+  height: 95px;
+
+  left: 0;
+
+  top: 95px;
+
+  border-radius: 50%;
+
+  border:
+
+  17px solid
+  rgba(230,205,160,.8);
+
+  border-top-color:
+
+  transparent;
+
+  border-left-color:
+
+  rgba(230,205,160,.45);
+
+  transform:
+  rotate(-18deg);
+
+  animation:
+  ringMove
+  7s
+  ease-in-out
+  infinite;
+
+}
+
+
+@keyframes ringMove {
+
+  0%,
+  100% {
+
+    transform:
+    rotate(-18deg)
+    scaleX(1);
+
+  }
+
+
+  25% {
+
+    transform:
+    rotate(-15deg)
+    scaleX(.94);
+
+  }
+
+
+  50% {
+
+    transform:
+    rotate(-18deg)
+    scaleX(.86);
+
+  }
+
+
+  75% {
+
+    transform:
+    rotate(-21deg)
+    scaleX(.94);
+
+  }
+
+}
+
+
+/* =========================
+   SPIDER THEME
+========================= */
+
+.spider-web {
+
+  position: fixed;
+
+  pointer-events: none;
+
+  z-index: -3;
+
+  opacity: 0;
+
+  transition:
+  opacity .6s ease;
+
+  width: 250px;
+
+  height: 250px;
+
+}
+
+
+body.spider-theme
+.spider-web {
+
+  opacity: .45;
+
+}
+
+
+.web-left {
+
+  top: 0;
+
+  left: 0;
+
+  border-radius:
+  0 0 100% 0;
+
+  background:
+
+  repeating-radial-gradient(
+
+    circle at top left,
+
+    transparent 0px,
+
+    transparent 18px,
+
+    rgba(180,30,40,.3)
+    19px,
+
+    transparent 21px
+
+  );
+
+  border-right:
+
+  1px solid
+  rgba(180,30,40,.25);
+
+  border-bottom:
+
+  1px solid
+  rgba(180,30,40,.25);
+
+}
+
+
+.web-right {
+
+  right: 0;
+
+  bottom: 0;
+
+  border-radius:
+  100% 0 0 0;
+
+  background:
+
+  repeating-radial-gradient(
+
+    circle at bottom right,
+
+    transparent 0px,
+
+    transparent 18px,
+
+    rgba(180,30,40,.3)
+    19px,
+
+    transparent 21px
+
+  );
+
+  border-left:
+
+  1px solid
+  rgba(180,30,40,.25);
+
+  border-top:
+
+  1px solid
+  rgba(180,30,40,.25);
+
+}
+
+
+/* =========================
+   OCEAN THEME
+========================= */
+
+.ocean-waves {
+
+  position: fixed;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+
+  z-index: -9;
+
+  opacity: 0;
+
+  transition:
+  opacity .7s ease;
+
+}
+
+
+body.ocean-theme
+.ocean-waves {
+
+  opacity: 1;
+
+}
+
+
+.ocean-wave {
+
+  position: absolute;
+
+  width: 180%;
+
+  height: 300px;
+
+  left: -40%;
+
+  border-radius: 45%;
+
+  background:
+
+  rgba(
+    0,
+    229,
+    255,
+    .08
+  );
+
+  filter:
+  blur(20px);
+
+  animation:
+  oceanMove
+  12s
+  ease-in-out
+  infinite;
+
+}
+
+
+.wave1 {
+
+  bottom: -150px;
+
+}
+
+
+.wave2 {
+
+  bottom: -180px;
+
+  background:
+  rgba(0,150,255,.1);
+
+  animation-delay:
+  -5s;
+
+}
+
+
+.wave3 {
+
+  bottom: -210px;
+
+  background:
+  rgba(0,255,220,.06);
+
+  animation-delay:
+  -8s;
+
+}
+
+
+@keyframes oceanMove {
+
+  0%,
+  100% {
+
+    transform:
+    translateX(-5%)
+    rotate(0deg);
+
+  }
+
+
+  50% {
+
+    transform:
+    translateX(5%)
+    rotate(3deg);
+
+  }
+
+}
+
+
+body.ocean-theme {
+
+  --accent: #00e5ff;
+
+  --accent2: #0077ff;
+
+  --accent-rgb: 0, 229, 255;
+
+  --bg: #010a0e;
+
+  background:
+
+  radial-gradient(
+    circle at top left,
+    rgba(0,229,255,.08),
+    transparent 40%
+  ),
+
+  radial-gradient(
+    circle at bottom right,
+    rgba(0,119,255,.06),
+    transparent 40%
+  ),
+
+  linear-gradient(
+    180deg,
+    #021620 0%,
+    #010d14 30%,
+    #01080d 65%,
+    #000306 100%
+  );
+
+}
+
+
+/* =========================
+   OCEAN SUN RAYS
+========================= */
+
+.ocean-rays {
+
+  position: fixed;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+
+  z-index: -8;
+
+  opacity: 0;
+
+  transition:
+  opacity .8s ease;
+
+  mix-blend-mode: screen;
+
+}
+
+
+body.ocean-theme
+.ocean-rays {
+
+  opacity: 1;
+
+}
+
+
+.ray {
+
+  position: absolute;
+
+  top: -10%;
+
+  width: 220px;
+
+  height: 140%;
+
+  background:
+
+  linear-gradient(
+    180deg,
+    rgba(150,220,255,.14),
+    rgba(100,200,255,.04)
+    45%,
+    transparent
+    80%
+  );
+
+  filter: blur(6px);
+
+  transform-origin: top center;
+
+  animation:
+  raySway
+  9s
+  ease-in-out
+  infinite;
+
+}
+
+
+.ray1 {
+
+  left: 4%;
+
+  --ray-angle: 10deg;
+
+  animation-delay: 0s;
+
+}
+
+
+.ray2 {
+
+  left: 26%;
+
+  width: 160px;
+
+  --ray-angle: 4deg;
+
+  animation-delay: -3s;
+
+  opacity: .8;
+
+}
+
+
+.ray3 {
+
+  left: 52%;
+
+  width: 260px;
+
+  --ray-angle: -8deg;
+
+  animation-delay: -6s;
+
+}
+
+
+.ray4 {
+
+  left: 78%;
+
+  width: 150px;
+
+  --ray-angle: -3deg;
+
+  animation-delay: -1.5s;
+
+  opacity: .7;
+
+}
+
+
+@keyframes raySway {
+
+  0%,
+  100% {
+
+    transform: rotate(var(--ray-angle, 8deg));
+
+    opacity: .55;
+
+  }
+
+  50% {
+
+    transform: rotate(calc(var(--ray-angle, 8deg) - 6deg));
+
+    opacity: .85;
+
+  }
+
+}
+
+
+/* =========================
+   OCEAN BUBBLES
+========================= */
+
+.ocean-bubbles {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: -6;
+
+  opacity: 0;
+
+  transition:
+  opacity .6s ease;
+
+}
+
+
+body.ocean-theme
+.ocean-bubbles {
+
+  opacity: 1;
+
+}
+
+
+.bubble {
+
+  position: absolute;
+
+  width: 10px;
+
+  height: 10px;
+
+  border-radius: 50%;
+
+  border:
+
+  1px solid
+  rgba(150,255,255,.45);
+
+  box-shadow:
+
+  0 0 15px
+  rgba(0,229,255,.2);
+
+  animation:
+  bubbleRise
+  8s
+  linear
+  infinite;
+
+}
+
+
+.bubble:nth-child(1) {
+
+  left: 10%;
+  bottom: -20px;
+
+}
+
+
+.bubble:nth-child(2) {
+
+  left: 25%;
+  bottom: -40px;
+
+  width: 6px;
+  height: 6px;
+
+  animation-delay: 2s;
+
+}
+
+
+.bubble:nth-child(3) {
+
+  left: 45%;
+  bottom: -30px;
+
+  animation-delay: 4s;
+
+}
+
+
+.bubble:nth-child(4) {
+
+  left: 70%;
+  bottom: -50px;
+
+  width: 14px;
+  height: 14px;
+
+  animation-delay: 1s;
+
+}
+
+
+.bubble:nth-child(5) {
+
+  left: 88%;
+  bottom: -30px;
+
+  width: 7px;
+  height: 7px;
+
+  animation-delay: 5s;
+
+}
+
+
+@keyframes bubbleRise {
+
+  from {
+
+    transform:
+    translateY(0);
+
+    opacity: 0;
+
+  }
+
+
+  20% {
+
+    opacity: .7;
+
+  }
+
+
+  80% {
+
+    opacity: .4;
+
+  }
+
+
+  to {
+
+    transform:
+    translateY(-110vh);
+
+    opacity: 0;
+
+  }
+
+}
+  /* =========================
+   SPIDER
+========================= */
+
+.spider-container {
+
+  position: fixed;
+
+  top: -130px;
+
+  right: 8%;
+
+  z-index: 3;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition:
+  opacity .6s ease;
+
+}
+
+
+body.spider-theme
+.spider-container {
+
+  opacity: 1;
+
+  animation:
+
+  spiderDrop
+  8s
+  ease-in-out
+  infinite;
+
+}
+
+
+.spider-thread {
+
+  width: 1px;
+
+  height: 140px;
+
+  margin: auto;
+
+  background:
+
+  linear-gradient(
+
+    transparent,
+
+    rgba(255,255,255,.5)
+
+  );
+
+}
+
+
+.spider {
+
+  width: 35px;
+
+  height: 42px;
+
+  margin: auto;
+
+  position: relative;
+
+}
+
+
+.spider-body {
+
+  position: absolute;
+
+  width: 22px;
+
+  height: 28px;
+
+  left: 7px;
+
+  top: 7px;
+
+  border-radius: 50%;
+
+  background:
+
+  radial-gradient(
+
+    circle at 35% 30%,
+
+    #d61f2b,
+
+    #49050a 70%
+
+  );
+
+  box-shadow:
+
+  0 0 15px
+  rgba(180,10,20,.5);
+
+}
+
+
+.spider-body::before {
+
+  content: "";
+
+  position: absolute;
+
+  width: 10px;
+
+  height: 10px;
+
+  background: #111;
+
+  border-radius: 50%;
+
+  left: 6px;
+
+  top: -6px;
+
+}
+
+
+.spider-leg {
+
+  position: absolute;
+
+  width: 18px;
+
+  height: 2px;
+
+  background: #111;
+
+  transform-origin: left;
+
+}
+
+
+.leg1 {
+
+  top: 13px;
+
+  left: 2px;
+
+  transform:
+  rotate(-30deg);
+
+}
+
+
+.leg2 {
+
+  top: 19px;
+
+  left: 1px;
+
+  transform:
+  rotate(15deg);
+
+}
+
+
+.leg3 {
+
+  top: 13px;
+
+  right: 2px;
+
+  transform:
+  rotate(30deg);
+
+}
+
+
+.leg4 {
+
+  top: 19px;
+
+  right: 1px;
+
+  transform:
+  rotate(-15deg);
+
+}
+
+
+@keyframes spiderDrop {
+
+  0% {
+
+    transform:
+    translateY(-40px);
+
+  }
+
+
+  50% {
+
+    transform:
+    translateY(220px);
+
+  }
+
+
+  100% {
+
+    transform:
+    translateY(-40px);
+
+  }
+
+}
+/* =========================
+   MIDNIGHT (DARK THEME)
+========================= */
+
+body.dark-theme {
+
+  --accent: #6d8dff;
+
+  --accent2: #a56dff;
+
+  --accent-rgb: 109, 141, 255;
+
+  --bg: #05060c;
+
+  background:
+
+  radial-gradient(
+    circle at 20% 10%,
+    rgba(109,141,255,.14),
+    transparent 40%
+  ),
+
+  radial-gradient(
+    circle at 85% 75%,
+    rgba(165,109,255,.1),
+    transparent 45%
+  ),
+
+  linear-gradient(
+    180deg,
+    #070813 0%,
+    #05060c 45%,
+    #020208 100%
+  );
+
+}
+
+
+.midnight-scene {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  overflow: hidden;
+
+  z-index: -6;
+
+  opacity: 0;
+
+  transition:
+  opacity .8s ease;
+
+}
+
+body.dark-theme .midnight-scene {
+
+  opacity: 1;
+
+}
+
+
+/* soft starlight */
+
+.midnight-stars {
+
+  position: absolute;
+
+  inset: 0;
+
+  background-image:
+
+  radial-gradient(
+    circle,
+    rgba(255,255,255,.75) 1px,
+    transparent 1px
+  ),
+
+  radial-gradient(
+    circle,
+    rgba(160,150,255,.5) 1px,
+    transparent 1px
+  );
+
+  background-size: 140px 140px, 190px 190px;
+
+  background-position: 10px 20px, 60px 80px;
+
+  animation:
+  midnightStarDrift
+  50s
+  linear
+  infinite;
+
+  opacity: .6;
+
+}
+
+@keyframes midnightStarDrift {
+
+  from {
+
+    background-position:
+    10px 20px,
+    60px 80px;
+
+  }
+
+  to {
+
+    background-position:
+    -130px 170px,
+    -140px 250px;
+
+  }
+
+}
+
+
+/* a single soft moon glow, no character, just light */
+
+.midnight-glow {
+
+  position: absolute;
+
+  width: 480px;
+
+  height: 480px;
+
+  right: -120px;
+
+  top: -100px;
+
+  border-radius: 50%;
+
+  background:
+
+  radial-gradient(
+    circle,
+    rgba(140,160,255,.16),
+    transparent 70%
+  );
+
+  filter: blur(10px);
+
+  animation:
+  midnightBreathe
+  10s
+  ease-in-out
+  infinite;
+
+}
+
+@keyframes midnightBreathe {
+
+  0%,
+  100% {
+
+    opacity: .7;
+
+    transform: scale(1);
+
+  }
+
+  50% {
+
+    opacity: 1;
+
+    transform: scale(1.06);
+
+  }
+
+}
+
+
+/* slow drifting mist near the bottom, calm not spooky */
+
+.midnight-mist {
+
+  position: absolute;
+
+  width: 160%;
+
+  height: 260px;
+
+  left: -30%;
+
+  bottom: -120px;
+
+  background:
+
+  radial-gradient(
+    ellipse,
+    rgba(109,141,255,.08),
+    transparent 65%
+  );
+
+  filter: blur(30px);
+
+  animation:
+  midnightMist
+  20s
+  ease-in-out
+  infinite;
+
+}
+
+@keyframes midnightMist {
+
+  0%,
+  100% {
+
+    transform: translateX(-4%);
+
+  }
+
+  50% {
+
+    transform: translateX(4%);
+
+  }
+
+}
+
+
+/* static vignette, calm depth, no strobing */
+
+.midnight-vignette {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -5;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+  background:
+
+  radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    rgba(0,0,0,.5) 100%
+  );
+
+}
+
+body.dark-theme .midnight-vignette {
+
+  opacity: 1;
+
+}
+
+
+/* =========================
+   DARK THEME BUTTON
+========================= */
+
+body.dark-theme
+.download-btn {
+
+  background:
+
+  linear-gradient(
+    120deg,
+
+    #1c2250,
+
+    #4a5bd6,
+
+    #8d6dff,
+
+    #1c2250
+  );
+
+  background-size:
+  300% 300%;
+
+}
+
+
+body.dark-theme
+.download-btn:hover {
+
+  box-shadow:
+
+  0
+  15px
+  45px
+
+  rgba(109,141,255,.4),
+
+  0
+  0
+  30px
+
+  rgba(165,109,255,.2);
+
+}
+
+/* =========================
+   CYBERPUNK THEME
+========================= */
+
+body.cyber-theme {
+
+  --accent: #00fff2;
+
+  --accent2: #ff2bd6;
+
+  --accent-rgb: 0, 255, 242;
+
+  --bg: #0a0014;
+
+  background:
+
+  radial-gradient(
+    circle at 15% 15%,
+    rgba(0,255,242,.12),
+    transparent 40%
+  ),
+
+  radial-gradient(
+    circle at 85% 85%,
+    rgba(255,43,214,.12),
+    transparent 40%
+  ),
+
+  linear-gradient(
+    180deg,
+    #0a0014 0%,
+    #0d0018 50%,
+    #05000c 100%
+  );
+
+}
+
+
+.cyber-scene {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  overflow: hidden;
+
+  z-index: -6;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+}
+
+body.cyber-theme .cyber-scene {
+
+  opacity: 1;
+
+}
+
+
+/* receding neon grid floor */
+
+.cyber-grid {
+
+  position: absolute;
+
+  left: -50%;
+
+  right: -50%;
+
+  bottom: 0;
+
+  height: 55%;
+
+  background-image:
+
+  linear-gradient(
+    rgba(0,255,242,.35) 1px,
+    transparent 1px
+  ),
+
+  linear-gradient(
+    90deg,
+    rgba(0,255,242,.35) 1px,
+    transparent 1px
+  );
+
+  background-size: 60px 60px;
+
+  transform: perspective(280px) rotateX(65deg);
+
+  transform-origin: bottom;
+
+  mask-image:
+
+  linear-gradient(
+    180deg,
+    transparent,
+    rgba(0,0,0,.9) 40%
+  );
+
+  -webkit-mask-image:
+
+  linear-gradient(
+    180deg,
+    transparent,
+    rgba(0,0,0,.9) 40%
+  );
+
+  animation:
+  cyberGridMove
+  4s
+  linear
+  infinite;
+
+}
+
+@keyframes cyberGridMove {
+
+  from {
+
+    background-position: 0 0, 0 0;
+
+  }
+
+  to {
+
+    background-position: 0 60px, 60px 0;
+
+  }
+
+}
+
+
+/* subtle CRT scanlines, static (cheap) */
+
+.cyber-scanlines {
+
+  position: absolute;
+
+  inset: 0;
+
+  background-image:
+
+  repeating-linear-gradient(
+
+    180deg,
+
+    rgba(255,255,255,.03) 0px,
+
+    rgba(255,255,255,.03) 1px,
+
+    transparent 1px,
+
+    transparent 3px
+
+  );
+
+  opacity: .5;
+
+}
+
+
+/* two soft neon glows, cyan + magenta */
+
+.cyber-glow {
+
+  position: absolute;
+
+  width: 460px;
+
+  height: 460px;
+
+  border-radius: 50%;
+
+  filter: blur(90px);
+
+  animation:
+  cyberPulse
+  8s
+  ease-in-out
+  infinite;
+
+}
+
+.cyber-glow1 {
+
+  left: -100px;
+
+  top: -80px;
+
+  background: rgba(0,255,242,.18);
+
+}
+
+.cyber-glow2 {
+
+  right: -100px;
+
+  bottom: -80px;
+
+  background: rgba(255,43,214,.16);
+
+  animation-delay: -4s;
+
+}
+
+@keyframes cyberPulse {
+
+  0%,
+  100% {
+
+    opacity: .7;
+
+    transform: scale(1);
+
+  }
+
+  50% {
+
+    opacity: 1;
+
+    transform: scale(1.1);
+
+  }
+
+}
+
+
+/* neon buttons for cyberpunk theme */
+
+body.cyber-theme .download-btn {
+
+  background:
+
+  linear-gradient(
+    120deg,
+    #00fff2,
+    #ff2bd6,
+    #00fff2
+  );
+
+  background-size: 300% 300%;
+
+  color: #05000c;
+
+  text-shadow: none;
+
+}
+
+body.cyber-theme .download-btn:hover {
+
+  box-shadow:
+
+  0 0 25px rgba(0,255,242,.5),
+  0 0 45px rgba(255,43,214,.35);
+
+}
+
+body.cyber-theme .tag,
+body.cyber-theme .format-switch,
+body.cyber-theme .url-input,
+body.cyber-theme .action-btn {
+
+  border-color: rgba(0,255,242,.35);
+
+}
+
+
+/* =========================
+   THEME 1 (ALT OCEAN)
+========================= */
+
+body.theme1-theme {
+
+  --accent: #00b4ff;
+
+  --accent2: #0077ff;
+
+  --accent-rgb: 0, 180, 255;
+
+  --bg: #010b17;
+
+}
+
+
+.t1-bg {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -9;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+  background:
+
+  linear-gradient(
+    180deg,
+    #061b2d 0%,
+    #063653 25%,
+    #021e36 58%,
+    #010b17 100%
+  );
+
+}
+
+body.theme1-theme .t1-bg {
+
+  opacity: 1;
+
+}
+
+
+.t1-depth {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -8;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+  background:
+
+  radial-gradient(
+    ellipse at 50% 100%,
+    rgba(0,175,255,.18),
+    transparent 55%
+  ),
+
+  linear-gradient(
+    180deg,
+    rgba(0,130,190,.12),
+    transparent 50%
+  );
+
+}
+
+body.theme1-theme .t1-depth {
+
+  opacity: 1;
+
+}
+
+
+/* underwater sun rays */
+
+.t1-rays {
+
+  position: fixed;
+
+  top: -20%;
+
+  left: 50%;
+
+  width: 1000px;
+
+  height: 900px;
+
+  transform: translateX(-50%);
+
+  opacity: 0;
+
+  filter: blur(2px);
+
+  z-index: -7;
+
+  pointer-events: none;
+
+  transition: opacity .8s ease;
+
+}
+
+body.theme1-theme .t1-rays {
+
+  opacity: .35;
+
+}
+
+.t1-ray {
+
+  position: absolute;
+
+  top: 0;
+
+  width: 100px;
+
+  height: 900px;
+
+  background:
+
+  linear-gradient(
+    180deg,
+    rgba(150,240,255,.22),
+    rgba(50,190,255,.07),
+    transparent
+  );
+
+  transform-origin: top center;
+
+  filter: blur(8px);
+
+}
+
+.t1-ray:nth-child(1) { left: 120px; transform: rotate(-24deg); }
+.t1-ray:nth-child(2) { left: 300px; transform: rotate(-12deg); }
+.t1-ray:nth-child(3) { left: 470px; transform: rotate(0deg); }
+.t1-ray:nth-child(4) { left: 640px; transform: rotate(12deg); }
+.t1-ray:nth-child(5) { left: 820px; transform: rotate(24deg); }
+
+
+/* caustics shimmer */
+
+.t1-caustics {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -6;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+  background:
+
+  repeating-linear-gradient(
+    105deg,
+    transparent 0 60px,
+    rgba(100,230,255,.12) 61px 64px,
+    transparent 65px 120px
+  );
+
+  animation:
+  t1CausticMove
+  12s
+  linear
+  infinite;
+
+}
+
+body.theme1-theme .t1-caustics {
+
+  opacity: .18;
+
+}
+
+@keyframes t1CausticMove {
+
+  from {
+
+    background-position: 0 0;
+
+  }
+
+  to {
+
+    background-position: 240px 0;
+
+  }
+
+}
+
+
+/* bubbles */
+
+.t1-bubbles {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -5;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity .8s ease;
+
+}
+
+body.theme1-theme .t1-bubbles {
+
+  opacity: 1;
+
+}
+
+.t1-bubble {
+
+  position: absolute;
+
+  bottom: -50px;
+
+  width: var(--size);
+
+  height: var(--size);
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(170,240,255,.35);
+
+  background: rgba(120,220,255,.04);
+
+  box-shadow:
+
+  inset 3px 3px 7px rgba(255,255,255,.08),
+
+  0 0 8px rgba(60,210,255,.08);
+
+  animation:
+  t1BubbleUp
+  var(--duration)
+  linear
+  infinite;
+
+  left: var(--left);
+
+  animation-delay: var(--delay);
+
+}
+
+@keyframes t1BubbleUp {
+
+  0% {
+
+    transform: translateY(0);
+
+    opacity: 0;
+
+  }
+
+  10% {
+
+    opacity: .6;
+
+  }
+
+  90% {
+
+    opacity: .3;
+
+  }
+
+  100% {
+
+    transform: translateY(-110vh);
+
+    opacity: 0;
+
+  }
+
+}
+
+
+/* hide default ambient layers when Theme 1 is active */
+
+body.theme1-theme .ambient-stars,
+body.theme1-theme .ambient-glow,
+body.theme1-theme .blob {
+
+  opacity: 0 !important;
+
+}
+
+
+/* =========================
+   NAV
+========================= */
+
+nav {
+
+  width:
+  min(1100px,90%);
+
+  margin:
+  20px auto;
+
+  padding:
+  16px 20px;
+
+  display: flex;
+
+  justify-content:
+  space-between;
+
+  align-items:
+  center;
+
+  background:
+  transparent;
+
+  border: none;
+
+  animation:
+  navEnter
+  .8s
+  ease;
+
+}
+
+
+@keyframes navEnter {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+    translateY(-20px);
+
+  }
+
+
+  to {
+
+    opacity: 1;
+
+    transform:
+    translateY(0);
+
+  }
+
+}
+
+
+.logo {
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  letter-spacing: .3px;
+
+}
+
+
+.logo span {
+
+  color:
+  var(--muted);
+
+  font-weight: 600;
+
+}
+
+
+/* =========================
+   MENU BUTTON
+========================= */
+
+.menu-btn {
+
+  width: 46px;
+
+  height: 46px;
+
+  border-radius: 14px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  color: white;
+
+  font-size: 23px;
+
+  cursor: pointer;
+
+  transition: .3s;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+.menu-btn:hover {
+
+  transform:
+  scale(1.07);
+
+  background:
+
+  rgba(
+    var(--accent-rgb),
+    .18
+  );
+
+  border-color:
+  var(--accent);
+
+}
+
+
+/* =========================
+   OVERLAY
+========================= */
+
+.menu-overlay {
+
+  position: fixed;
+
+  inset: 0;
+
+  background:
+  rgba(0,0,0,.45);
+
+  backdrop-filter:
+  blur(5px);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: .3s;
+
+  z-index: 20;
+
+}
+
+
+.menu-overlay.active {
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+}
+
+
+/* =========================
+   SIDE MENU
+========================= */
+
+.side-menu {
+
+  position: fixed;
+
+  top: 0;
+
+  right: -380px;
+
+  width:
+  min(360px,90%);
+
+  height: 100vh;
+
+  padding: 25px;
+
+  background:
+  rgba(15,15,25,.88);
+
+  backdrop-filter:
+  blur(30px);
+
+  border-left:
+
+  1px solid
+  var(--border);
+
+  z-index: 30;
+
+  transition:
+
+  .4s
+  cubic-bezier(
+    .2,
+    .8,
+    .2,
+    1
+  );
+
+  overflow-y: auto;
+
+}
+
+
+.side-menu.active {
+
+  right: 0;
+
+}
+
+
+.menu-header {
+
+  display: flex;
+
+  justify-content:
+  space-between;
+
+  align-items:
+  center;
+
+  margin-bottom: 30px;
+
+}
+
+
+.close-btn,
+.back-btn {
+
+  width: 42px;
+
+  height: 42px;
+
+  border-radius: 12px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  transparent;
+
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+}
+
+
+/* =========================
+   MENU PAGES
+========================= */
+
+.menu-page {
+
+  display: none;
+
+  animation:
+  pageEnter
+  .3s
+  ease;
+
+}
+
+
+.menu-page.active {
+
+  display: block;
+
+}
+
+
+@keyframes pageEnter {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+    translateX(20px);
+
+  }
+
+
+  to {
+
+    opacity: 1;
+
+    transform:
+    translateX(0);
+
+  }
+
+}
+
+
+.settings-option {
+
+  width: 100%;
+
+  padding: 18px;
+
+  margin-bottom: 12px;
+
+  display: flex;
+
+  justify-content:
+  space-between;
+
+  align-items:
+  center;
+
+  border-radius: 16px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  color: white;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  transition: .3s;
+
+}
+
+
+.settings-option:hover {
+
+  transform:
+  translateX(5px);
+
+  border-color:
+  var(--accent);
+
+}
+
+
+.page-header {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-bottom: 25px;
+
+}
+
+
+.option-list {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+}
+
+
+.list-option {
+
+  width: 100%;
+
+  padding: 17px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  border-radius: 15px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  color: white;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  transition: .3s;
+
+}
+
+
+.list-option:hover {
+
+  transform:
+  translateX(5px);
+
+  border-color:
+  var(--accent);
+
+}
+
+
+/* =========================
+   THEME GRID (ENVIRONMENT)
+========================= */
+
+.theme-grid {
+
+  display: grid;
+
+  grid-template-columns:
+  repeat(2, 1fr);
+
+  gap: 10px;
+
+}
+
+
+.theme-option {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 4px;
+
+  padding: 16px;
+
+  border-radius: 15px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition: .3s;
+
+}
+
+
+.theme-option:hover {
+
+  transform:
+  translateY(-3px);
+
+  border-color:
+  var(--accent);
+
+  background:
+
+  rgba(
+    var(--accent-rgb),
+    .1
+  );
+
+}
+
+
+.theme-name {
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+}
+
+
+.theme-desc {
+
+  color:
+  var(--muted);
+
+  font-size: 12px;
+
+}
+
+
+/* =========================
+   COLOUR GRID
+========================= */
+
+.colour-grid {
+
+  display: grid;
+
+  grid-template-columns:
+  repeat(2, 1fr);
+
+  gap: 10px;
+
+}
+
+
+.colour-option {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 14px 16px;
+
+  border-radius: 15px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  cursor: pointer;
+
+  transition: .3s;
+
+}
+
+
+.colour-option:hover {
+
+  transform:
+  translateY(-3px);
+
+  border-color:
+  var(--accent);
+
+  background:
+
+  rgba(
+    var(--accent-rgb),
+    .1
+  );
+
+}
+
+
+.list-dot {
+
+  width: 18px;
+
+  height: 18px;
+
+  border-radius: 50%;
+
+}
+
+
+.purple {
+  background: #8b5cf6;
+}
+
+.red {
+  background: #ef4444;
+}
+
+.blue {
+  background: #3b82f6;
+}
+
+.green {
+  background: #22c55e;
+}
+
+.pink {
+  background: #ec4899;
+}
+
+.cyber {
+  background: #00e5ff;
+}
+
+.orange {
+  background: #f97316;
+}
+
+.gold {
+  background: #eab308;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+main {
+
+  width:
+  min(850px,90%);
+
+  margin:
+  80px auto;
+
+  text-align: center;
+
+  position: relative;
+
+}
+
+
+/* =========================
+   HERO DOTS
+========================= */
+
+.hero-dot {
+
+  position: absolute;
+
+  width: 6px;
+
+  height: 6px;
+
+  border-radius: 50%;
+
+  border:
+
+  1px solid
+  rgba(
+    var(--accent-rgb),
+    .5
+  );
+
+  opacity: .5;
+
+  pointer-events: none;
+
+}
+
+.hero-dot.d1 { top: 2%; left: 19%; }
+.hero-dot.d2 { top: 2%; left: 84%; }
+.hero-dot.d3 { top: 30%; left: 6%; }
+.hero-dot.d4 { top: 30%; left: 94%; }
+.hero-dot.d5 { top: 58%; left: 40%; }
+.hero-dot.d6 { top: 58%; left: 62%; }
+
+
+/* =========================
+   TAG
+========================= */
+
+.tag {
+
+  display:
+  inline-flex;
+
+  align-items:
+  center;
+
+  gap: 8px;
+
+  padding:
+  10px 22px;
+
+  border-radius:
+  30px;
+
+  background:
+  transparent;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  color:
+  var(--muted);
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  letter-spacing: 3px;
+
+  animation:
+  fadeUp
+  .7s
+  ease;
+
+}
+
+
+/* =========================
+   TITLE
+========================= */
+
+.title {
+
+  margin:
+  28px 0 18px;
+
+  font-size:
+  clamp(
+    55px,
+    10vw,
+    100px
+  );
+
+  line-height: .9;
+
+  letter-spacing:
+  -4px;
+
+  font-weight: 900;
+
+  font-family:
+  Arial,
+  sans-serif;
+
+  text-transform:
+  uppercase;
+
+  animation:
+
+  titleEnter
+  1s
+  cubic-bezier(
+    .2,
+    .8,
+    .2,
+    1
+  );
+
+}
+
+
+.title .download {
+
+  display: block;
+
+  color: white;
+
+}
+
+
+.title .videos {
+
+  display: block;
+
+  margin-top: 10px;
+
+  color: white;
+
+}
+
+
+@keyframes titleEnter {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+
+    translateY(40px)
+
+    scale(.95);
+
+  }
+
+
+  to {
+
+    opacity: 1;
+
+    transform:
+
+    translateY(0)
+
+    scale(1);
+
+  }
+
+}
+
+
+@keyframes fadeUp {
+
+  from {
+
+    opacity: 0;
+
+    transform:
+    translateY(20px);
+
+  }
+
+
+  to {
+
+    opacity: 1;
+
+    transform:
+    translateY(0);
+
+  }
+
+}
+
+
+.description {
+
+  color:
+  var(--muted);
+
+  line-height: 1.7;
+
+  font-size: 17px;
+
+}
+
+
+/* =========================
+   CONVERTER
+========================= */
+
+.converter {
+
+  margin-top: 50px;
+
+  padding: 30px;
+
+  background:
+
+  linear-gradient(
+
+    145deg,
+
+    rgba(255,255,255,.09),
+
+    rgba(255,255,255,.035)
+
+  );
+
+  backdrop-filter:
+  blur(35px);
+
+  border:
+
+  1px solid
+  var(--border);
+
+  border-radius:
+  30px;
+
+  box-shadow:
+
+  0
+  25px
+  80px
+  rgba(0,0,0,.25);
+
+}
+
+
+/* =========================
+   FORMAT SWITCH
+========================= */
+
+.format-switch {
+
+  display: flex;
+
+  gap: 10px;
+
+  padding: 8px;
+
+  width: 100%;
+
+  margin:
+  0 0 25px;
+
+  border-radius:
+  20px;
+
+  background:
+  rgba(0,0,0,.2);
+
+  border:
+
+  1px solid
+  var(--border);
+
+}
+
+
+.format-btn {
+
+  flex: 1;
+
+  border: none;
+
+  background:
+  transparent;
+
+  color:
+  var(--muted);
+
+  padding:
+  16px 24px;
+
+  border-radius:
+  15px;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .35s;
+
+}
+
+
+.format-btn.active {
+
+  color: white;
+
+  background:
+
+  linear-gradient(
+
+    135deg,
+
+    var(--accent),
+
+    var(--accent2)
+
+  );
+
+  box-shadow:
+
+  0
+  8px
+  30px
+
+  rgba(
+    var(--accent-rgb),
+    .3
+  );
+
+}
+
+
+/* =========================
+   FIELD LABEL
+========================= */
+
+.field-label {
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  color: var(--muted);
+
+  margin: 0 0 10px 2px;
+
+  text-align: left;
+
+}
+
+
+/* =========================
+   ACTION ROW (PASTE / CLEAR / REFRESH)
+========================= */
+
+.action-row {
+
+  display: flex;
+
+  gap: 10px;
+
+  margin: 12px 0 25px;
+
+}
+
+.action-btn {
+
+  flex: 1;
+
+  padding: 13px 10px;
+
+  border-radius: 14px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.05);
+
+  color: var(--text);
+
+  font-size: 15px;
+
+  font-weight: 500;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  transition: .3s;
+
+}
+
+.action-btn:hover {
+
+  transform:
+  scale(1.03);
+
+  background:
+
+  rgba(
+    var(--accent-rgb),
+    .12
+  );
+
+  border-color:
+  var(--accent);
+
+}
+
+.action-btn:active {
+
+  transform:
+  scale(.97);
+
+}
+
+
+/* =========================
+   URL BOX
+========================= */
+
+.url-box {
+
+  display: flex;
+
+  gap: 12px;
+
+}
+
+
+.url-input {
+
+  flex: 1;
+
+  padding: 20px;
+
+  border-radius:
+  20px;
+
+  border:
+
+  1px solid
+  var(--border);
+
+  background:
+  rgba(255,255,255,.06);
+
+  color: white;
+
+  outline: none;
+
+  font-size: 16px;
+
+}
+
+
+.url-input:focus {
+
+  border-color:
+  var(--accent);
+
+  box-shadow:
+
+  0
+  0
+  0
+  4px
+
+  rgba(
+    var(--accent-rgb),
+    .1
+  );
+
+}
+
+
+/* =========================
+   DOWNLOAD BUTTON
+========================= */
+
+.download-btn {
+
+  min-width: 150px;
+
+  width: 100%;
+
+  padding:
+  20px 25px;
+
+  border: none;
+
+  border-radius:
+  20px;
+
+  background:
+
+  linear-gradient(
+
+    135deg,
+
+    var(--accent),
+
+    var(--accent2)
+
+  );
+
+  background-size:
+  200% 200%;
+
+  animation:
+
+  buttonBlend
+  6s
+  ease
+  infinite;
+
+  color: white;
+
+  font-weight: bold;
+
+  font-size: 15px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+
+  cursor: pointer;
+
+  transition:
+
+  transform .3s ease,
+
+  box-shadow .3s ease;
+
+}
+
+
+body.spider-theme .download-btn {
+
+  background:
+
+  linear-gradient(
+    120deg,
+    #35284D,
+    #B11313,
+    #35284D,
+    #B11313
+  );
+
+  background-size: 300% 300%;
+
+}
+
+
+body.galaxy-theme .download-btn {
+
+  background:
+
+  linear-gradient(
+    120deg,
+    #1e1b4b,
+    #7c3aed,
+    #ec4899,
+    #1e1b4b
+  );
+
+  background-size: 300% 300%;
+
+}
+
+
+/* AQUA OCEAN BUTTON */
+
+body.ocean-theme .download-btn {
+
+  background:
+
+  linear-gradient(
+    120deg,
+    #003b5c,
+    #00e5ff,
+    #00b8d4,
+    #0077ff,
+    #003b5c
+  );
+
+  background-size: 300% 300%;
+
+}
+
+
+@keyframes buttonBlend {
+
+  0% {
+
+    background-position:
+    0% 50%;
+
+  }
+
+
+  50% {
+
+    background-position:
+    100% 50%;
+
+  }
+
+
+  100% {
+
+    background-position:
+    0% 50%;
+
+  }
+
+}
+
+
+.download-btn:hover {
+
+  transform:
+  translateY(-3px);
+
+  box-shadow:
+
+  0
+  15px
+  40px
+
+  rgba(
+    var(--accent-rgb),
+    .35
+  ),
+
+  0
+  10px
+  30px
+
+  rgba(0,0,0,.35);
+
+}
+
+
+.download-btn:active {
+
+  transform:
+  scale(.97);
+
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status-box {
+
+  display: none;
+
+  margin-top: 25px;
+
+  padding: 22px;
+
+  border-radius:
+  18px;
+
+  background:
+  rgba(255,255,255,.05);
+
+  border:
+
+  1px solid
+  var(--border);
+
+}
+
+
+.loader {
+
+  width: 36px;
+
+  height: 36px;
+
+  margin:
+  0 auto 15px;
+
+  border:
+
+  3px solid
+  rgba(255,255,255,.1);
+
+  border-top-color:
+  var(--accent);
+
+  border-radius: 50%;
+
+  animation:
+  spin
+  .8s
+  linear
+  infinite;
+
+}
+
+
+@keyframes spin {
+
+  to {
+
+    transform:
+    rotate(360deg);
+
+  }
+
+}
+
+
+.status-text {
+
+  color:
+  var(--muted);
+
+}
+
+
+.info {
+
+  margin-top: 20px;
+
+  color:
+  var(--muted);
+
+  font-size: 13px;
+
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+
+  text-align: center;
+
+  padding: 35px;
+
+  color: #666;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:600px) {
+
+  nav {
+
+    width: 92%;
+
+  }
+
+
+  main {
+
+    margin:
+    60px auto;
+
+  }
+
+
+  .converter {
+
+    padding: 18px;
+
+  }
+
+
+  .url-box {
+
+    flex-direction:
+    column;
+
+  }
+
+
+  .download-btn {
+
+    width: 100%;
+
+  }
+
+
+  .title {
+
+    letter-spacing:
+    -2px;
+
+  }
+
+
+  .saturn {
+
+    width: 200px;
+
+    height: 200px;
+
+    right: -65px;
+
+    bottom: -45px;
+
+  }
+
+
+  .saturn-planet {
+
+    width: 125px;
+
+    height: 125px;
+
+    left: 35px;
+
+    top: 35px;
+
+  }
+
+
+  .saturn-ring-back,
+  .saturn-ring-front {
+
+    width: 200px;
+
+    height: 65px;
+
+    top: 68px;
+
+    border-width: 11px;
+
+  }
+
+
+  .spider-container {
+
+    right: 5%;
+
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================
+     BACKGROUND
+===================== -->
+
+<div class="background">
+
+  <div
+  class="blob blob1"
+  ></div>
+
+  <div
+  class="blob blob2"
+  ></div>
+
+</div>
+
+
+<!-- =====================
+     SILK STREAKS
+===================== -->
+
+<div class="silk-streaks"></div>
+
+
+<!-- =====================
+     AMBIENT STARS + GLOW
+===================== -->
+
+<div class="ambient-stars"></div>
+<div class="ambient-glow"></div>
+
+<!-- =====================
+     AMBIENT PARTICLES
+===================== -->
+
+<div class="particles">
+
+  <span class="particle p1"></span>
+  <span class="particle p2"></span>
+  <span class="particle p3"></span>
+  <span class="particle p4"></span>
+  <span class="particle p5"></span>
+  <span class="particle p6"></span>
+  <span class="particle p7"></span>
+  <span class="particle p8"></span>
+  <span class="particle p9"></span>
+  <span class="particle p10"></span>
+
+</div>
+
+
+
+<!-- =====================
+     GALAXY STARS
+===================== -->
+
+<div
+class="galaxy-stars"
+></div>
+
+
+<div
+class="sparkles"
+>
+
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+
+</div>
+
+
+<!-- =====================
+     SATURN
+===================== -->
+
+<div
+class="saturn"
+>
+
+  <div
+  class="saturn-ring-back"
+  ></div>
+
+  <div
+  class="saturn-planet"
+  ></div>
+
+  <div
+  class="saturn-ring-front"
+  ></div>
+
+</div>
+
+
+<!-- =====================
+     OCEAN WAVES
+===================== -->
+
+<div class="ocean-waves">
+
+  <div class="ocean-wave wave1"></div>
+
+  <div class="ocean-wave wave2"></div>
+
+  <div class="ocean-wave wave3"></div>
+
+</div>
+
+
+<!-- =====================
+     OCEAN SUN RAYS
+===================== -->
+
+<div class="ocean-rays">
+
+  <div class="ray ray1"></div>
+  <div class="ray ray2"></div>
+  <div class="ray ray3"></div>
+  <div class="ray ray4"></div>
+
+</div>
+
+
+<!-- =====================
+     OCEAN BUBBLES
+===================== -->
+
+<div class="ocean-bubbles">
+
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+
+</div>
+
+
+<!-- =====================
+     SPIDER WEBS
+===================== -->
+
+<div
+class="spider-web web-left"
+></div>
+
+
+<div
+class="spider-web web-right"
+></div>
+
+
+<!-- =====================
+     SPIDER
+===================== -->
+
+<div
+class="spider-container"
+>
+
+  <div
+  class="spider-thread"
+  ></div>
+
+
+  <div
+  class="spider"
+  >
+
+    <div
+    class="spider-body"
+    ></div>
+
+    <div
+    class="spider-leg leg1"
+    ></div>
+
+    <div
+    class="spider-leg leg2"
+    ></div>
+
+    <div
+    class="spider-leg leg3"
+    ></div>
+
+    <div
+    class="spider-leg leg4"
+    ></div>
+
+  </div>
+
+</div>
+   
+<!-- =====================
+     MIDNIGHT (DARK) THEME
+===================== -->
+
+<div class="midnight-scene">
+
+  <div class="midnight-stars"></div>
+
+  <div class="midnight-glow"></div>
+
+  <div class="midnight-mist"></div>
+
+</div>
+
+<div class="midnight-vignette"></div>
+
+
+<!-- =====================
+     CYBERPUNK THEME
+===================== -->
+
+<div class="cyber-scene">
+
+  <div class="cyber-grid"></div>
+
+  <div class="cyber-scanlines"></div>
+
+  <div class="cyber-glow cyber-glow1"></div>
+
+  <div class="cyber-glow cyber-glow2"></div>
+
+</div>
+
+
+<!-- =====================
+     THEME 1 (ALT OCEAN)
+===================== -->
+
+<div class="t1-bg"></div>
+
+<div class="t1-depth"></div>
+
+<div class="t1-rays">
+
+  <div class="t1-ray"></div>
+  <div class="t1-ray"></div>
+  <div class="t1-ray"></div>
+  <div class="t1-ray"></div>
+  <div class="t1-ray"></div>
+
+</div>
+
+<div class="t1-caustics"></div>
+
+<div class="t1-bubbles">
+
+  <span class="t1-bubble" style="--size:14px; --left:8%; --duration:9s; --delay:0s;"></span>
+  <span class="t1-bubble" style="--size:8px; --left:18%; --duration:7s; --delay:1.5s;"></span>
+  <span class="t1-bubble" style="--size:11px; --left:30%; --duration:10s; --delay:3s;"></span>
+  <span class="t1-bubble" style="--size:6px; --left:42%; --duration:6s; --delay:.5s;"></span>
+  <span class="t1-bubble" style="--size:16px; --left:55%; --duration:11s; --delay:4s;"></span>
+  <span class="t1-bubble" style="--size:9px; --left:66%; --duration:8s; --delay:2s;"></span>
+  <span class="t1-bubble" style="--size:12px; --left:78%; --duration:9.5s; --delay:5s;"></span>
+  <span class="t1-bubble" style="--size:7px; --left:90%; --duration:7.5s; --delay:2.5s;"></span>
+
+</div>
+
+<!-- =====================
+     MENU OVERLAY
+===================== -->
+
+<div
+class="menu-overlay"
+id="menuOverlay"
+onclick="closeMenu()"
+></div>
+
+
+<!-- =====================
+     SIDE MENU
+===================== -->
+
+<div
+class="side-menu"
+id="sideMenu"
+>
+
+  <div
+  class="menu-page active"
+  id="mainSettings"
+  >
+
+    <div
+    class="menu-header"
+    >
+
+      <h2>Settings</h2>
+
+      <button
+      class="close-btn"
+      onclick="closeMenu()"
+      >
+        ✕
+      </button>
+
+    </div>
+
+
+    <button
+    class="settings-option"
+    onclick="openPage('coloursPage')"
+    >
+
+      <span>
+        🎨 Colours
+      </span>
+
+      <span>
+        →
+      </span>
+
+    </button>
+
+
+    <button
+    class="settings-option"
+    onclick="openPage('themesPage')"
+    >
+
+      <span>
+        ✨ Themes
+      </span>
+
+      <span>
+        →
+      </span>
+
+    </button>
+
+  </div>
+
+
+  <!-- =====================
+       COLOURS PAGE
+  ===================== -->
+
+  <div
+  class="menu-page"
+  id="coloursPage"
+  >
+
+    <div class="page-header">
+
+      <button
+      class="back-btn"
+      onclick="goBack()"
+      >
+        ←
+      </button>
+
+      <h2>Colours</h2>
+
+    </div>
+
+
+    <div class="colour-grid">
+
+      <button
+      class="colour-option"
+      onclick="setColour('purple')"
+      >
+        <span class="list-dot purple"></span>
+        <span class="theme-name">Purple</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('red')"
+      >
+        <span class="list-dot red"></span>
+        <span class="theme-name">Red</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('blue')"
+      >
+        <span class="list-dot blue"></span>
+        <span class="theme-name">Blue</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('green')"
+      >
+        <span class="list-dot green"></span>
+        <span class="theme-name">Green</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('pink')"
+      >
+        <span class="list-dot pink"></span>
+        <span class="theme-name">Pink</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('cyber')"
+      >
+        <span class="list-dot cyber"></span>
+        <span class="theme-name">Cyber</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('orange')"
+      >
+        <span class="list-dot orange"></span>
+        <span class="theme-name">Orange</span>
+      </button>
+
+
+      <button
+      class="colour-option"
+      onclick="setColour('gold')"
+      >
+        <span class="list-dot gold"></span>
+        <span class="theme-name">Gold</span>
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================
+       THEMES PAGE
+  ===================== -->
+
+  <div
+  class="menu-page"
+  id="themesPage"
+  >
+
+    <div class="page-header">
+
+      <button
+      class="back-btn"
+      onclick="goBack()"
+      >
+        ←
+      </button>
+
+      <h2>Environment</h2>
+
+    </div>
+
+
+    <div class="theme-grid">
+
+      <button
+      class="theme-option"
+      onclick="setTheme('default')"
+      >
+        <span class="theme-name">Default</span>
+        <span class="theme-desc">Fast, simple, clean</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('dark')"
+      >
+        <span class="theme-name">Dark</span>
+        <span class="theme-desc">Calm midnight glow</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('cyber')"
+      >
+        <span class="theme-name">Cyberpunk</span>
+        <span class="theme-desc">Neon night city</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('galaxy')"
+      >
+        <span class="theme-name">Galaxy</span>
+        <span class="theme-desc">Deep space stars</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('ocean')"
+      >
+        <span class="theme-name">Ocean</span>
+        <span class="theme-desc">Underwater calm</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('theme1')"
+      >
+        <span class="theme-name">Theme 1</span>
+        <span class="theme-desc">Underwater rays</span>
+      </button>
+
+
+      <button
+      class="theme-option"
+      onclick="setTheme('spider')"
+      >
+        <span class="theme-name">Spider</span>
+        <span class="theme-desc">Web-slinger vibes</span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+<!-- =====================
+     NAV
+===================== -->
+
+<nav>
+
+  <div class="logo">MEDIA<span>EXTRACTOR</span></div>
+
+  <button
+  class="menu-btn"
+  onclick="openMenu()"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="6" width="12" height="12" rx="3" transform="rotate(45 12 12)" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="1.6" fill="currentColor"/>
+    </svg>
+  </button>
+
+</nav>
+
+
+<!-- =====================
+     MAIN
+===================== -->
+
+<main>
+
+  <span class="hero-dot d1"></span>
+  <span class="hero-dot d2"></span>
+  <span class="hero-dot d3"></span>
+  <span class="hero-dot d4"></span>
+  <span class="hero-dot d5"></span>
+  <span class="hero-dot d6"></span>
+
+  <div class="tag">
+    FAST &bull; SIMPLE &bull; CLEAN
+  </div>
+
+
+  <h1 class="title">
+
+    <span class="download">
+      Extract
+    </span>
+
+    <span class="videos">
+      Anything
+    </span>
+
+  </h1>
+
+
+  <p class="description">
+
+    Paste a supported media URL and download your media
+    in the format you need.
+
+  </p>
+
+
+  <!-- =====================
+       CONVERTER
+  ===================== -->
+
+  <div class="converter">
+
+
+    <!-- URL -->
+
+    <div class="field-label">Media URL</div>
+
+    <div
+    class="url-box"
+    >
+
+      <input
+
+      id="urlInput"
+
+      class="url-input"
+
+      type="url"
+
+      placeholder="Paste direct media URL..."
+
+      >
+
+    </div>
+
+    <!-- PASTE / CLEAR / REFRESH -->
+
+    <div class="action-row">
+
+      <button
+      type="button"
+      class="action-btn"
+      onclick="pasteURL()"
+      >
+        Paste
+      </button>
+
+      <button
+      type="button"
+      class="action-btn"
+      onclick="clearURL()"
+      >
+        Clear
+      </button>
+
+      <button
+      type="button"
+      class="action-btn"
+      onclick="refreshURL()"
+      >
+        Refresh
+      </button>
+
+    </div>
+
+
+    <!-- FORMAT -->
+
+    <div class="field-label">Output Format</div>
+
+    <div
+    class="format-switch"
+    >
+
+      <button
+
+      class="format-btn active"
+
+      id="mp4Btn"
+
+      onclick="setFormat('mp4')"
+
+      >
+
+        MP4
+
+      </button>
+
+
+      <button
+
+      class="format-btn"
+
+      id="mp3Btn"
+
+      onclick="setFormat('mp3')"
+
+      >
+
+        MP3
+
+      </button>
+
+    </div>
+
+
+    <button
+
+    class="download-btn"
+
+    id="downloadBtn"
+
+    onclick="downloadMedia()"
+
+    >
+
+      Download MP4
+
+    </button>
+
+
+    <!-- STATUS -->
+
+    <div
+
+    id="statusBox"
+
+    class="status-box"
+
+    >
+
+      <div
+
+      class="loader"
+
+      id="loader"
+
+      ></div>
+
+
+      <div
+
+      id="statusText"
+
+      class="status-text"
+
+      >
+
+        Preparing...
+
+      </div>
+
+    </div>
+
+
+    <div
+
+    class="info"
+
+    id="infoText"
+
+    >
+
+      Supports publicly accessible direct media file URLs.
+
+    </div>
+
+  </div>
+
+</main>
+
+
+<!-- =====================
+     FOOTER
+===================== -->
+
+<footer>
+
+  © 2026 Video Extractor
+
+</footer>
+
+
+<script>
+
+/* ======================
+   MENU
+====================== */
+
+function openMenu() {
+
+  document
+    .getElementById("sideMenu")
+    .classList
+    .add("active");
+
+
+  document
+    .getElementById("menuOverlay")
+    .classList
+    .add("active");
+
+}
+
+
+function closeMenu() {
+
+  document
+    .getElementById("sideMenu")
+    .classList
+    .remove("active");
+
+
+  document
+    .getElementById("menuOverlay")
+    .classList
+    .remove("active");
+
+}
+
+
+/* ======================
+   MENU PAGES
+====================== */
+
+function openPage(pageId) {
+
+  document
+    .querySelectorAll(".menu-page")
+    .forEach(function(page) {
+
+      page
+        .classList
+        .remove("active");
+
+    });
+
+
+  document
+    .getElementById(pageId)
+    .classList
+    .add("active");
+
+}
+
+
+function goBack() {
+
+  document
+    .querySelectorAll(".menu-page")
+    .forEach(function(page) {
+
+      page
+        .classList
+        .remove("active");
+
+    });
+
+
+  document
+    .getElementById("mainSettings")
+    .classList
+    .add("active");
+
+}
+
+
+/* ======================
+   FORMAT
+====================== */
+
+let selectedFormat = "mp4";
+
+
+function setFormat(format) {
+
+  selectedFormat = format;
+
+
+  document
+    .getElementById("mp4Btn")
+    .classList
+    .toggle(
+      "active",
+      format === "mp4"
+    );
+
+
+  document
+    .getElementById("mp3Btn")
+    .classList
+    .toggle(
+      "active",
+      format === "mp3"
+    );
+
+
+  const input =
+    document.getElementById(
+      "urlInput"
+    );
+
+
+  const button =
+    document.getElementById(
+      "downloadBtn"
+    );
+
+
+  const info =
+    document.getElementById(
+      "infoText"
+    );
+
+
+  if (format === "mp3") {
+
+    input.placeholder =
+      "Paste direct video/audio URL...";
+
+
+    button.innerText =
+      "Download MP3";
+
+
+    info.innerText =
+      "Audio will be extracted and converted to MP3.";
+
+  }
+
+
+  else {
+
+    input.placeholder =
+      "Paste direct media URL...";
+
+
+    button.innerText =
+      "Download MP4";
+
+
+    info.innerText =
+      "Supports publicly accessible direct media file URLs.";
+
+  }
+
+}
+
+
+/* ======================
+   PASTE / CLEAR / REFRESH
+====================== */
+
+async function pasteURL() {
+
+  const input =
+    document.getElementById("urlInput");
+
+  try {
+
+    const text =
+      await navigator.clipboard.readText();
+
+    if (text) {
+
+      input.value = text.trim();
+      input.focus();
+
+    }
+
+  } catch (error) {
+
+    input.focus();
+
+  }
+
+}
+
+
+function clearURL() {
+
+  const input =
+    document.getElementById("urlInput");
+
+  input.value = "";
+
+  input.focus();
+
+}
+
+
+function refreshURL() {
+
+  const input =
+    document.getElementById("urlInput");
+
+  const statusBox =
+    document.getElementById("statusBox");
+
+  const statusText =
+    document.getElementById("statusText");
+
+  const loader =
+    document.getElementById("loader");
+
+  input.value = "";
+
+  input.focus();
+
+  loader.style.display = "none";
+
+  statusBox.style.display = "none";
+
+  statusText.innerText = "Preparing...";
+
+}
+
+
+/* ======================
+   DOWNLOAD
+====================== */
+async function downloadMedia() {
+
+  const url =
+    document
+      .getElementById("urlInput")
+      .value
+      .trim();
+
+
+  if (!url) {
+
+    alert(
+      "Please paste a media URL."
+    );
+
+    return;
+
+  }
+
+
+  const statusBox =
+    document.getElementById(
+      "statusBox"
+    );
+
+
+  const statusText =
+    document.getElementById(
+      "statusText"
+    );
+
+
+  const loader =
+    document.getElementById(
+      "loader"
+    );
+
+
+  const button =
+    document.getElementById(
+      "downloadBtn"
+    );
+
+
+  statusBox.style.display =
+    "block";
+
+
+  loader.style.display =
+    "block";
+
+
+  statusText.innerText =
+
+    selectedFormat === "mp3"
+
+    ? "Converting media to MP3..."
+
+    : "Connecting to media server...";
+
+
+  button.disabled = true;
+
+
+  button.style.opacity =
+    ".6";
+
+
+  try {
+
+    /* SAME WEBSITE BACKEND */
+
+    const backendURL = "";
+
+
+    /* SELECT API */
+
+    const endpoint =
+
+      selectedFormat === "mp3"
+
+      ? backendURL +
+        "/api/convert/mp3"
+
+      : backendURL +
+        "/api/download";
+
+
+    /* SEND REQUEST */
+
+    const response =
+      await fetch(
+
+        endpoint,
+
+        {
+
+          method: "POST",
+
+
+          headers: {
+
+            "Content-Type":
+            "application/json"
+
+          },
+
+
+          body:
+
+          JSON.stringify({
+
+            url: url
+
+          })
+
+        }
+
+      );
+
+
+    /* ERROR CHECK */
+
+    if (!response.ok) {
+
+      const data =
+        await response
+          .json()
+          .catch(
+            () => null
+          );
+
+
+      throw new Error(
+
+        data?.error ||
+
+        "Request failed."
+
+      );
+
+    }
+
+
+    statusText.innerText =
+
+      selectedFormat === "mp3"
+
+      ? "Preparing MP3..."
+
+      : "Preparing file...";
+
+
+    /* GET FILE */
+
+    const blob =
+      await response.blob();
+
+
+    const objectURL =
+      URL.createObjectURL(blob);
+
+
+    const link =
+      document.createElement("a");
+
+
+    link.href =
+      objectURL;
+
+
+    /* FILE NAME */
+
+    link.download =
+
+      selectedFormat === "mp3"
+
+      ? "audio.mp3"
+
+      : "media.mp4";
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+      objectURL
+    );
+
+
+    loader.style.display =
+      "none";
+
+
+    statusText.innerText =
+
+      selectedFormat === "mp3"
+
+      ? "MP3 download started! ✓"
+
+      : "Download started! ✓";
+
+  }
+
+
+  catch (error) {
+
+    console.error(error);
+
+
+    loader.style.display =
+      "none";
+
+
+    statusText.innerText =
+
+      "Error: " +
+      error.message;
+
+  }
+
+
+  finally {
+
+    button.disabled =
+      false;
+
+
+    button.style.opacity =
+      "1";
+
+  }
+
+}
+
+      
+    
+    
+/* ======================
+   COLOURS
+====================== */
+
+function setColour(colour) {
+
+  const colours = {
+
+    purple: {
+
+      c1: "#8b5cf6",
+
+      c2: "#4f46e5",
+
+      rgb: "139, 92, 246"
+
+    },
+
+
+    red: {
+
+      c1: "#ef4444",
+
+      c2: "#b91c1c",
+
+      rgb: "239, 68, 68"
+
+    },
+
+
+    blue: {
+
+      c1: "#3b82f6",
+
+      c2: "#1d4ed8",
+
+      rgb: "59, 130, 246"
+
+    },
+
+
+    green: {
+
+      c1: "#22c55e",
+
+      c2: "#15803d",
+
+      rgb: "34, 197, 94"
+
+    },
+
+
+    pink: {
+
+      c1: "#ec4899",
+
+      c2: "#be185d",
+
+      rgb: "236, 72, 153"
+
+    },
+
+
+    cyber: {
+
+      c1: "#00e5ff",
+
+      c2: "#0891b2",
+
+      rgb: "0, 229, 255"
+
+    },
+
+
+    orange: {
+
+      c1: "#f97316",
+
+      c2: "#c2410c",
+
+      rgb: "249, 115, 22"
+
+    },
+
+
+    gold: {
+
+      c1: "#eab308",
+
+      c2: "#a16207",
+
+      rgb: "234, 179, 8"
+
+    }
+
+  };
+
+
+  const picked =
+    colours[colour];
+
+
+  if (!picked) {
+
+    return;
+
+  }
+
+
+  document
+    .documentElement
+    .style
+    .setProperty(
+
+      "--accent",
+
+      picked.c1
+
+    );
+
+
+  document
+    .documentElement
+    .style
+    .setProperty(
+
+      "--accent2",
+
+      picked.c2
+
+    );
+
+
+  document
+    .documentElement
+    .style
+    .setProperty(
+
+      "--accent-rgb",
+
+      picked.rgb
+
+    );
+
+
+  /* SAVE COLOUR */
+
+  localStorage.setItem(
+
+    "colour",
+
+    colour
+
+  );
+
+
+  /* Colour choose karne ke baad
+     menu automatically close */
+
+  closeMenu();
+
+}
+
+
+/* ======================
+   THEMES
+====================== */
+
+   function setTheme(theme) {
+
+  /* REMOVE ALL THEMES */
+
+  document.body.classList.remove(
+
+    "galaxy-theme",
+
+    "spider-theme",
+
+    "ocean-theme",
+
+    "dark-theme",
+
+    "cyber-theme",
+
+    "theme1-theme"
+
+  );
+
+
+  /* GALAXY */
+
+  if (theme === "galaxy") {
+
+    document.body.classList.add(
+      "galaxy-theme"
+    );
+
+  }
+
+
+  /* SPIDER */
+
+  else if (theme === "spider") {
+
+    document.body.classList.add(
+      "spider-theme"
+    );
+
+  }
+
+
+  /* OCEAN */
+
+  else if (theme === "ocean") {
+
+    document.body.classList.add(
+      "ocean-theme"
+    );
+
+  }
+
+
+  /* DARK / HALLOWEEN */
+
+  else if (theme === "dark") {
+
+    document.body.classList.add(
+      "dark-theme"
+    );
+
+  }
+
+
+  /* CYBERPUNK */
+
+  else if (theme === "cyber") {
+
+    document.body.classList.add(
+      "cyber-theme"
+    );
+
+  }
+
+
+  /* THEME 1 (ALT OCEAN) */
+
+  else if (theme === "theme1") {
+
+    document.body.classList.add(
+      "theme1-theme"
+    );
+
+  }
+
+
+  /* DEFAULT */
+
+  else if (theme === "default") {
+
+    document.body.style.removeProperty(
+      "--accent"
+    );
+
+    document.body.style.removeProperty(
+      "--accent2"
+    );
+
+    document.body.style.removeProperty(
+      "--accent-rgb"
+    );
+
+  }
+
+  /* SAVE THEME */
+
+  localStorage.setItem(
+    "websiteTheme",
+    theme
+  );
+
+
+  /* Theme choose karne ke baad
+     menu automatically close */
+
+  closeMenu();
+
+}
+
+
+
+/* ======================
+   LOAD SAVED SETTINGS
+====================== */
+
+const savedColour =
+
+  localStorage.getItem(
+    "colour"
+  );
+
+
+const savedWebsiteTheme =
+
+  localStorage.getItem(
+    "websiteTheme"
+  );
+
+
+/* LOAD THEME FIRST */
+
+if (savedWebsiteTheme) {
+
+  setTheme(
+    savedWebsiteTheme
+  );
+
+}
+
+
+/* LOAD COLOUR ONLY
+   WHEN NO SPECIAL THEME */
+
+if (
+
+  savedColour &&
+
+  (
+
+    !savedWebsiteTheme ||
+
+    savedWebsiteTheme === "default" ||
+
+    savedWebsiteTheme === "dark"
+
+  )
+
+) {
+
+  setColour(
+    savedColour
+  );
+
+}
+
+</script>
+
+</body>
+
+</html>
