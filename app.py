@@ -132,12 +132,6 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
         cookie_file = _youtube_cookie_file(url)
         if cookie_file is not None:
             ydl_opts["cookiefile"] = str(cookie_file)
-        else:
-            # No cookies configured: fall back to a client spoof that
-            # sometimes avoids the bot-check, though it exposes fewer formats.
-            ydl_opts["extractor_args"] = {
-                "youtube": {"player_client": ["android_vr", "web_safari"]}
-            }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
