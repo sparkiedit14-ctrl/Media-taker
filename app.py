@@ -129,12 +129,15 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
 
     parsed_host = (urlparse(url).hostname or "").lower()
     if "youtube" in parsed_host or parsed_host == "youtu.be":
-        ydl_opts["extractor_args"] = {
-            "youtube": {"player_client": ["android_vr", "web_safari"]}
-        }
         cookie_file = _youtube_cookie_file(url)
         if cookie_file is not None:
             ydl_opts["cookiefile"] = str(cookie_file)
+        else:
+            # No cookies configured: fall back to a client spoof that
+            # sometimes avoids the bot-check, though it exposes fewer formats.
+            ydl_opts["extractor_args"] = {
+                "youtube": {"player_client": ["android_vr", "web_safari"]}
+            }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -217,3 +220,4 @@ def root():
     return JSONResponse({
         "message": "Media-taker backend is running. Use POST /api/download with a YouTube or Instagram URL."
     })
+    
