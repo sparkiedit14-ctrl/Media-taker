@@ -118,10 +118,12 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
         "fragment_retries": 3,
         "socket_timeout": 30,
     }
+    # Use a broad format selector: best available video+audio combo,
+    # merged into MP4. A narrow ext=mp4-only selector fails whenever the
+    # chosen player client doesn't expose a combined mp4 format.
     ydl_opts = {
         **common,
-        "format": "bestaudio/best" if media_type == "mp3"
-        else "best[ext=mp4][acodec!=none]/best[acodec!=none]/best",
+        "format": "bestaudio/best" if media_type == "mp3" else "bv*+ba/b",
         "merge_output_format": "mp4",
     }
 
