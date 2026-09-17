@@ -12,8 +12,10 @@ RUN pip install --no-cache-dir -r Requirements.txt
 COPY app.py ./app.py
 COPY Index.html ./Index.html
 
-# Set this to your deployed frontend URL(s), comma-separated, in production.
+# Never COPY a cookie file into the image. Configure YOUTUBE_COOKIES_FILE
+# in Render to point to a mounted Secret File instead.
 ENV FRONTEND_ORIGINS="*"
+ENV YOUTUBE_COOKIES_FILE=""
 
 EXPOSE 8000
 
