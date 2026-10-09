@@ -10,6 +10,7 @@ from typing import Literal
 from urllib.parse import urlparse
 
 import yt_dlp
+from yt_dlp.version import __version__ as yt_dlp_version
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -132,6 +133,10 @@ def _download_media(url: str, media_type: str, output_dir: Path) -> Path:
         cookie_file = _youtube_cookie_file(url)
         if cookie_file is not None:
             ydl_opts["cookiefile"] = str(cookie_file)
+            # Avoid YouTube's current tv_downgraded client failure when cookies are used.
+            ydl_opts["extractor_args"] = {
+                "youtube": {"player_client": ["default", "web_embedded"]}
+            }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -191,6 +196,8 @@ def health() -> dict[str, str]:
         "status": "ok",
         "ffmpeg": "ok" if shutil.which("ffmpeg") else "missing",
         "ffprobe": "ok" if shutil.which("ffprobe") else "missing",
+        "deno": "ok" if shutil.which("deno") else "missing",
+        "yt_dlp": yt_dlp_version,
         "version": app.version,
     }
 
